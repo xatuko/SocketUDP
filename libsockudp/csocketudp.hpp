@@ -3,6 +3,8 @@
 
 #include "isocketudp.hpp"
 
+namespace libsock {
+
 class CSocketUDP : public ISocketUDP
 {
 private: // members
@@ -38,5 +40,6 @@ public:  // methods
     void closeSock() override;
 };
 
+} // namespace libsock
 
 #endif // CSOCKETUDP_HPP

@@ -16,6 +16,8 @@
 #include <thread>
 #include <chrono>
 
+namespace libsock {
+
 using ByteArray = std::vector<uint8_t>;
 const constexpr uint BUFFER_SIZE = 1400;
 const constexpr uint SEND_DELAY  = 1400;
@@ -23,5 +25,6 @@ const constexpr uint RECV_DELAY  = 1400;
 
 enum class SocketType { Client, Server };
 
+} // namespace libsock
 
 #endif // COMMON_HPP

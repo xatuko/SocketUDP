@@ -3,6 +3,8 @@
 
 #include "common.hpp"
 
+namespace libsock {
+
 class ISocketUDP
 {
 public:
@@ -14,5 +16,7 @@ public:
     virtual void recvData(ByteArray & data) = 0;
     virtual void closeSock() = 0;
 };
+
+} // namespace libsock
 
 #endif // ISOCKETUDP_HPP

@@ -1,5 +1,7 @@
 #include "libsockudp/csocketudp.hpp"
 
+using namespace libsock;
+
 int main(int, char**) {
     int type;
     std::cout << "1 - server\n2 - client\n> ";

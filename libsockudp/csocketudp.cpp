@@ -1,5 +1,7 @@
 #include "csocketudp.hpp"
 
+namespace libsock {
+
 CSocketUDP::CSocketUDP(const std::string & ip, const int & port, const SocketType & sock_type) : ISocketUDP()
 {
     m_sock_addr.sin_addr.s_addr = inet_addr(ip.c_str());
@@ -175,3 +177,5 @@ int CSocketUDP::error(const std::string & text)
     print("Error: " + std::to_string(errno));
     return -1;
 }
+
+} // namespace libsock
