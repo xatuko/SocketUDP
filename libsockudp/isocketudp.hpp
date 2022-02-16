@@ -12,6 +12,7 @@ public:
     virtual ~ISocketUDP() = default;
 
     virtual int init() = 0;
+    virtual void enableOutput(bool status) = 0;
     virtual void sendData(const ByteArray & data) = 0;
     virtual void recvData(ByteArray & data) = 0;
     virtual void closeSock() = 0;

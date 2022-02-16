@@ -2,13 +2,16 @@
 
 namespace libsock {
 
-CSocketUDP::CSocketUDP(const std::string & ip, const int & port, const SocketType & sock_type) : ISocketUDP()
+CSocketUDP::CSocketUDP(const std::string & ip,
+                       const int         & port,
+                       const SocketType  & sock_type) : ISocketUDP()
 {
     m_sock_addr.sin_addr.s_addr = inet_addr(ip.c_str());
     m_sock_addr.sin_port        = htons(port);
     m_sock_addr.sin_family      = AF_INET;
-    m_sock_len                  = sizeof(m_sock_addr);
+    m_own_addr_len              = sizeof(m_sock_addr);
     m_sock_type                 = sock_type;
+    m_output_flag               = false;
 }
 
 CSocketUDP::~CSocketUDP()
@@ -38,7 +41,7 @@ int CSocketUDP::initServer()
     if (m_fd < 0)
         return error("Ошибка создания сокета.");
 
-    if (bind(m_fd, (sockaddr*)&m_sock_addr, m_sock_len) == -1)
+    if (bind(m_fd, (sockaddr*)&m_sock_addr, m_own_addr_len) == -1)
         return error("Ошибка привязки сокета.");
     
     m_is_open = true;
@@ -55,7 +58,8 @@ int CSocketUDP::init()
 
 int CSocketUDP::readData(const int & sock, ByteArray & data)
 {
-    int size = recvfrom(sock, data.data(), data.size(), MSG_DONTWAIT, (sockaddr*)&m_sock_addr, &m_sock_len);
+    int size = recvfrom(sock, data.data(), data.size(), MSG_DONTWAIT,
+                        (sockaddr*)&m_client_addr, &m_cli_addr_len);
     if (size > 0)
         data.resize(size);
     else if (size < 0) return error("Ошибка чтения.");
@@ -64,8 +68,8 @@ int CSocketUDP::readData(const int & sock, ByteArray & data)
 
 int CSocketUDP::writeData(const int & sock, const ByteArray & data)
 {
-
-    int size = sendto(sock, data.data(), data.size(), MSG_DONTWAIT, (sockaddr*)&m_sock_addr, m_sock_len);
+    int size = sendto(sock, data.data(), data.size(), MSG_DONTWAIT,
+                      (sockaddr*)&m_client_addr, m_cli_addr_len);
     return size > 0 ? size : error("Ошибка записи.");
 }
 
@@ -90,8 +94,6 @@ void CSocketUDP::recvData(ByteArray & data)
 
 void CSocketUDP::bufproc(int sock)
 {
-    m_pfd = new pollfd[2];
-
     m_pfd[0].fd      = sock;
     m_pfd[0].events  = POLLIN;
     m_pfd[0].revents = 0;
@@ -101,27 +103,8 @@ void CSocketUDP::bufproc(int sock)
     m_pfd[1].revents = 0;
 
     while (m_run)
-    {
-        // std::unique_lock<std::mutex> lock1(m_s_buf_control);
-        // if (m_send_buffer.size() > 0)
-        // {
-        //     ByteArray barray = m_send_buffer.front();
-        //     if (writeData(sock, barray) > 0)
-        //         m_send_buffer.pop();
-        // }
-        // lock1.unlock();
-
-        // std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-        // std::unique_lock<std::mutex> lock2(m_r_buf_control);
-        // ByteArray barray(BUFFER_SIZE);
-        // if (readData(sock, barray) > 0)
-        //     m_recv_buffer.push(barray);
-        // lock2.unlock();
-
-        // std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        
-        int res = poll(m_pfd, 2, 1000);
+    {   
+        int res = poll(m_pfd.data(), m_pfd.size(), 1000);
         if (res > 0)
         {
             if (m_send_buffer.size() > 0 && m_pfd[1].revents & POLLOUT)
@@ -168,7 +151,7 @@ void CSocketUDP::closeSock()
 
 void CSocketUDP::print(const std::string & text)
 {
-    std::cout << "[CSocketUDP] " << text << std::endl;
+    if (m_output_flag) std::cout << "[CSocketUDP] " << text << std::endl;
 }
 
 int CSocketUDP::error(const std::string & text)
